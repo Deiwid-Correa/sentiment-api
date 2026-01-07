@@ -1,0 +1,8 @@
+
+services:
+  sentiment-api:
+    image: sentiment-api:latest
+    container_name: sentiment-api
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
