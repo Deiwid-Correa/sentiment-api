@@ -1,185 +1,162 @@
-# Sentiment Analysis API (Español)
+Sentiment Analysis API (Spanish) 
 
-## Descripción general
+API REST para análisis de sentimiento en español, construida con FastAPI y Machine Learning clásico, enfocada en estabilidad, claridad y buenas prácticas de ingeniería.
 
-Este proyecto implementa una API REST para análisis de sentimiento en textos en español.
-La API recibe comentarios, reseñas u opiniones de clientes y clasifica el sentimiento
-como positivo o negativo, devolviendo la predicción junto con su probabilidad.
 
-La solución está diseñada como un microservicio listo para producción, pensado para
-ser consumido por aplicaciones Back-end (por ejemplo, Java con Spring Boot), sin exponer
-ni compartir el modelo de Machine Learning.
+🎯 Objetivo del proyecto
 
----
+Proveer un servicio backend capaz de clasificar textos en español en tres categorías:
 
-## Contexto de negocio
+- Positivo  
+- Neutral  
+- Negativo  
 
-Empresas de atención al cliente, marketing y operaciones reciben grandes volúmenes
-de comentarios de usuarios (reseñas, encuestas, redes sociales).
+El proyecto prioriza interpretabilidad del modelo, balance de datos y una arquitectura preparada para producción.
 
-Esta API permite:
-- Identificar automáticamente comentarios positivos o negativos
-- Priorizar la atención a comentarios negativos
-- Medir la satisfacción del cliente a lo largo del tiempo
-- Apoyar la toma de decisiones operativas y de marketing
 
-Incluso con un modelo simple, la clasificación de sentimiento aporta valor real
-a pequeñas y medianas empresas que no cuentan con equipos dedicados de análisis.
+ 🧠 Modelo de Machine Learning
 
----
+- Algoritmo: Regresión Logística  
+- Vectorización: TF-IDF con n-grams (1, 2)  
+- Clases: Positivo, Neutral, Negativo  
+- Dataset:
+  - 150 frases en español
+  - Balanceado (50 por clase)
+  - Etiquetado manualmente
 
-## Arquitectura de la solución
+Métricas del modelo (dataset v3)
 
-### Data Science
-- Limpieza y normalización del texto
-- Vectorización con TF-IDF
-- Entrenamiento de modelo supervisado (Logistic Regression)
-- Evaluación de métricas
-- Serialización del modelo entrenado
-
-### API
-- Implementada en Python con FastAPI
-- Versionado de endpoints (v1 y v2)
-- Manejo de errores controlado
-- Protección contra timeouts del modelo
-- Logging estructurado con trazabilidad (`trace_id`)
-
-### Despliegue
-- Contenerización con Docker
-- Orquestación con Docker Compose
-
-### Consumo
-- Comunicación vía HTTP/JSON
-- Pensada para ser consumida por Back-end en Java (Spring Boot)
-- El Back-end no necesita Python ni librerías de Machine Learning
-
-El modelo de ML está completamente encapsulado dentro del microservicio.
+- Accuracy aproximado: 83%
+- Clases balanceadas
+- Predicción con probabilidad de confianza
 
 ---
 
-## Requisitos
+ Tecnologías utilizadas
 
+- Python 3.9
+- FastAPI
+- scikit-learn
+- Pandas
+- Uvicorn
+- SlowAPI (rate limiting)
+- Joblib
 - Docker
-- Docker Compose
-
-No se requiere Python local para ejecutar el servicio.
 
 ---
 
-## Ejecución del proyecto con Docker
+sentiment-api/
+│
+├── app/
+│ ├── main.py
+│ └── api/
+│ ├── v1/
+│ └── v2/
+│
+├── training/
+│ └── train_model.py
+│
+├── models/
+│ ├── modelo_sentimiento_v3.pkl
+│ └── vectorizador_tfidf_v3.pkl
+│
+├── tests/
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+└── README.md
 
-### Construir y levantar el servicio
 
-```bash
-docker-compose up --build
-
-
-
-Documentación Swagger:
-
-http://localhost:8000/docs
 ---
 
-## Endpoints disponibles
+Endpoints
 
-### POST /v2/analyze
+ Healthcheck
 
-- Analiza el sentimiento de un texto en español.
 
-#### Request (JSON)
+
+GET /
+
+
+Respuesta:
 ```json
 {
-  "text": "El servicio fue rápido y muy profesional"
+  "message": "API funcionando correctamente"
 }
 
-### Response exitosa
+Análisis de sentimiento (v2)
+POST /v2/analyze
+
+
+Request:
 
 {
-  "texto": "El servicio fue rápido y muy profesional",
+  "text": "El servicio fue rápido y profesional"
+}
+
+
+Response:
+
+{
+  "texto": "El servicio fue rápido y profesional",
   "sentimiento": "positivo",
-  "probabilidad": 0.67,
-  "modelo": "sentiment-es-v2",
-  "trace_id": "94ac7cd1"
+  "probabilidad": 0.73,
+  "modelo": "sentiment-es-v3",
+  "trace_id": "abc123ef"
 }
 
+🛡️ Características del backend
 
-###Manejo de errores
+Versionado de API
 
-- La API responde siempre con HTTP 200.
-- Los errores se reportan dentro del cuerpo de la respuesta para facilitar la trazabilidad en los sistemas consumidores.
+Rate limiting
 
-    Ejemplo de error
+Logging estructurado
 
-{
-  "error_code": "MODEL_FAILURE",
-  "message": "Error interno del modelo",
-  "trace_id": "a1b2c3"
-}
+Warm-up del modelo
 
-    Guía de integración para Back-end (Java / Spring Boot)
+Manejo de errores
 
-Esta API está pensada para ser consumida como un microservicio externo.
+Trazabilidad por request
 
-###Consideraciones técnicas
+Preparado para despliegue productivo
 
-Endpoint: /v2/analyze
+🧪 Entrenamiento del modelo
 
-Método: POST
+Ejecutar:
 
-Content-Type: application/json
-
-Autenticación: No requerida
-
-Respuesta: JSON
-
-### El Back-end no necesita cargar ni ejecutar el modelo de Machine Learning.
-
-### Flujo recomendado en Java
-
-1.Enviar una petición HTTP POST con el texto a analizar
-
-2.Parsear la respuesta JSON
-
-3.Utilizar los campos sentimiento y probabilidad dentro de la lógica de negocio
-
-###Pruebas
-
-El proyecto incluye:
-
--Pruebas unitarias
-
--Simulación de timeouts del modelo
-
--Simulación de fallos controlados del modelo
-
--Pruebas de regresión entre las versiones v1 y v2
-    pytest --cov=app
+python training/train_model.py
 
 
+Este proceso:
 
+Carga el dataset
 
-###Autoría y responsabilidad técnica
+Entrena el modelo
 
-Este proyecto fue diseñado, implementado y desplegado por:
+Evalúa métricas
+
+Guarda modelo y vectorizador
+
+🐳 Ejecución con Docker
+docker-compose up --build
+
+📌 Estado del proyecto
+
+MVP funcional
+
+Modelo entrenado y evaluado
+
+Documentación actualizada
+
+API lista para integración
+
+👤 Autor
 
 Deiwid Correa
+Backend & Machine Learning (Applied)
 
-Responsabilidades cubiertas
 
--Limpieza y preparación del dataset
 
--Entrenamiento y serialización del modelo
 
--Diseño e implementación de la API
 
--Versionado de endpoints (v1 y v2)
-
--Manejo de errores, timeouts y logging
-
--Implementación de pruebas automatizadas y de regresión
-
--Dockerización y despliegue con Docker Compose
-
-###Licencia
-
--Proyecto desarrollado con fines educativos y demostrativos.
