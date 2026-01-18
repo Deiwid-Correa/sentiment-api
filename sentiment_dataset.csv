@@ -1,0 +1,18 @@
+texto,sentimiento
+"Me encantó el servicio","positivo"
+"Excelente atención y rapidez","positivo"
+"Muy buena experiencia","positivo"
+"Todo funcionó perfectamente","positivo"
+"Estoy muy satisfecho","positivo"
+
+"Fue normal, nada especial","neutro"
+"No estuvo mal","neutro"
+"El servicio fue aceptable","neutro"
+"Cumple con lo esperado","neutro"
+"Está bien","neutro"
+
+"Pésimo servicio","negativo"
+"Horrible experiencia","negativo"
+"No me gustó para nada","negativo"
+"Muy mala atención","negativo"
+"No volvería jamás","negativo"

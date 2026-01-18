@@ -1,0 +1,194 @@
+### 📌 Contrato Técnico – Sentiment Analysis API (v3)
+
+## 1. Objetivo
+
+Definir el contrato técnico para la integración entre el servicio de análisis de sentimiento
+(Python / FastAPI) y el backend consumidor (Java / Spring Boot) en el contexto del hackathon.
+
+---
+
+## 2. Descripción del Servicio
+
+La API recibe un texto en español y devuelve la clasificación de sentimiento junto con un nivel
+de confianza asociado a la predicción.
+
+---
+
+## 3. Base URL
+
+### Local / Docker
+
+```
+http://localhost:8000
+```
+
+### Docker (entre contenedores)
+
+```
+http://sentiment-api:8000
+```
+
+---
+
+## 4. Endpoint Principal
+
+### POST `/v3/analyze`
+
+#### Request (JSON)
+
+```json
+{
+  "text": "Excelente servicio y muy rápido"
+}
+```
+
+---
+
+#### Response Exitosa (200 OK)
+
+```json
+{
+  "sentimiento": "positivo",
+  "confianza": 0.87
+}
+```
+
+---
+
+## 5. Campos de Respuesta
+
+| Campo       | Tipo   | Descripción                  |
+| ----------- | ------ | ---------------------------- |
+| sentimiento | string | positivo / negativo / neutro |
+| confianza   | float  | Valor entre 0 y 1            |
+
+---
+
+## 6. Validaciones
+
+* El campo `text` es obligatorio
+* Longitud mínima: 1 caracter
+* Textos ambiguos pueden retornar `sentimiento = neutro` con menor confianza
+
+---
+
+## 7. Reglas de Integración
+
+* Método HTTP: **POST**
+* Content-Type: `application/json`
+* Autenticación: no requerida
+* El backend Java **no debe usar GET**
+* El contrato **no cambiará durante el hackathon**
+
+---
+
+## 8. Versionado
+
+* `/v2` → Contrato extendido (legacy / interno)
+* `/v3` → Contrato simplificado para integración y demo
+
+---
+
+✔️ **Contrato cerrado y limpio**
+✔️ No contradice tu trabajo previo
+✔️ Alineado con lo que corre hoy
+
+---
+
+## 3️⃣ Cómo el equipo Java debe llamar la API
+
+Ahora lo más importante para ellos: **código listo para copiar**.
+
+---
+
+## ☕ Opción A — RestTemplate (simple y suficiente)
+
+### DTOs
+
+```java
+public class SentimentRequest {
+    private String text;
+
+    // getters y setters
+}
+```
+
+```java
+public class SentimentResponse {
+    private String sentimiento;
+    private Double confianza;
+
+    // getters y setters
+}
+```
+
+---
+
+### Llamada con RestTemplate
+
+```java
+RestTemplate restTemplate = new RestTemplate();
+
+String url = "http://sentiment-api:8000/v3/analyze";
+// si es local fuera de Docker:
+// String url = "http://localhost:8000/v3/analyze";
+
+SentimentRequest request = new SentimentRequest();
+request.setText("El servicio fue excelente y muy rápido");
+
+HttpHeaders headers = new HttpHeaders();
+headers.setContentType(MediaType.APPLICATION_JSON);
+
+HttpEntity<SentimentRequest> entity =
+        new HttpEntity<>(request, headers);
+
+ResponseEntity<SentimentResponse> response =
+        restTemplate.postForEntity(
+                url,
+                entity,
+                SentimentResponse.class
+        );
+
+SentimentResponse body = response.getBody();
+
+System.out.println(body.getSentimiento());
+System.out.println(body.getConfianza());
+```
+
+✔️ Simple
+✔️ Claro
+✔️ Ideal para hackathon
+
+---
+
+## ⚡ Opción B — WebClient (reactivo / moderno)
+
+### Configuración del cliente
+
+```java
+WebClient webClient = WebClient.builder()
+        .baseUrl("http://sentiment-api:8000")
+        .build();
+```
+
+---
+
+### Llamada
+
+```java
+SentimentResponse response = webClient.post()
+        .uri("/v3/analyze")
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(new SentimentRequest("El servicio fue excelente y muy rápido"))
+        .retrieve()
+        .bodyToMono(SentimentResponse.class)
+        .block();
+
+System.out.println(response.getSentimiento());
+System.out.println(response.getConfianza());
+```
+
+✔️ Ideal si ya usan WebFlux
+✔️ No bloquea innecesariamente
+
+---

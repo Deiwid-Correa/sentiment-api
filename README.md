@@ -1,185 +1,187 @@
-# Sentiment Analysis API (Español)
+# Sentiment Analysis API (Español) – Hackathon Demo
 
-## Descripción general
+## 📌 Descripción general
 
-Este proyecto implementa una API REST para análisis de sentimiento en textos en español.
-La API recibe comentarios, reseñas u opiniones de clientes y clasifica el sentimiento
-como positivo o negativo, devolviendo la predicción junto con su probabilidad.
+Este proyecto implementa una **API REST para análisis de sentimiento en textos en español**.
+La API recibe comentarios, reseñas u opiniones de clientes y clasifica automáticamente el sentimiento como **positivo, negativo o neutro**, devolviendo además un **nivel de confianza** asociado a la predicción.
 
-La solución está diseñada como un microservicio listo para producción, pensado para
-ser consumido por aplicaciones Back-end (por ejemplo, Java con Spring Boot), sin exponer
-ni compartir el modelo de Machine Learning.
+La solución está diseñada como un **microservicio desacoplado**, listo para ser consumido por aplicaciones Back-end (por ejemplo, Java con Spring Boot), **sin exponer ni compartir el modelo de Machine Learning**.
 
 ---
 
-## Contexto de negocio
+## 🏢 Contexto de negocio
 
-Empresas de atención al cliente, marketing y operaciones reciben grandes volúmenes
-de comentarios de usuarios (reseñas, encuestas, redes sociales).
+Empresas de **atención al cliente, marketing y operaciones** reciben grandes volúmenes de comentarios provenientes de:
+
+* reseñas de productos
+* encuestas de satisfacción
+* redes sociales
 
 Esta API permite:
-- Identificar automáticamente comentarios positivos o negativos
-- Priorizar la atención a comentarios negativos
-- Medir la satisfacción del cliente a lo largo del tiempo
-- Apoyar la toma de decisiones operativas y de marketing
 
-Incluso con un modelo simple, la clasificación de sentimiento aporta valor real
-a pequeñas y medianas empresas que no cuentan con equipos dedicados de análisis.
+* Identificar automáticamente comentarios positivos, negativos o ambiguos
+* Priorizar la atención a comentarios negativos
+* Detectar casos dudosos (neutros) para revisión manual
+* Medir la satisfacción del cliente a lo largo del tiempo
+
+Incluso con un modelo simple, la clasificación de sentimiento aporta **valor real** a pequeñas y medianas empresas que no cuentan con equipos dedicados de análisis de datos.
 
 ---
 
-## Arquitectura de la solución
+## 🧠 Arquitectura de la solución
 
 ### Data Science
-- Limpieza y normalización del texto
-- Vectorización con TF-IDF
-- Entrenamiento de modelo supervisado (Logistic Regression)
-- Evaluación de métricas
-- Serialización del modelo entrenado
+
+* Limpieza y normalización del texto
+* Vectorización mediante **TF-IDF**
+* Entrenamiento de modelo supervisado (Logistic Regression)
+* Evaluación básica de métricas
+* Serialización del modelo entrenado
 
 ### API
-- Implementada en Python con FastAPI
-- Versionado de endpoints (v1 y v2)
-- Manejo de errores controlado
-- Protección contra timeouts del modelo
-- Logging estructurado con trazabilidad (`trace_id`)
+
+* Implementada en **Python con FastAPI**
+* Versionado de endpoints
+* Validación de entrada
+* Respuesta estructurada y consistente en JSON
+* Encapsulamiento total del modelo dentro del servicio
 
 ### Despliegue
-- Contenerización con Docker
-- Orquestación con Docker Compose
+
+* Contenerización con **Docker**
+* Orquestación mediante **Docker Compose**
 
 ### Consumo
-- Comunicación vía HTTP/JSON
-- Pensada para ser consumida por Back-end en Java (Spring Boot)
-- El Back-end no necesita Python ni librerías de Machine Learning
 
-El modelo de ML está completamente encapsulado dentro del microservicio.
+* Comunicación vía **HTTP / JSON**
+* Pensada para ser consumida por Back-end en **Java (Spring Boot)**
+* El Back-end **no necesita Python ni librerías de Machine Learning**
 
----
-
-## Requisitos
-
-- Docker
-- Docker Compose
-
-No se requiere Python local para ejecutar el servicio.
+El modelo de ML permanece completamente encapsulado dentro del microservicio.
 
 ---
 
-## Ejecución del proyecto con Docker
+## ⚙️ Requisitos
+
+* Docker
+* Docker Compose
+
+> No se requiere Python local para ejecutar el servicio.
+
+---
+
+## 🚀 Ejecución del proyecto con Docker
 
 ### Construir y levantar el servicio
 
 ```bash
 docker-compose up --build
+```
 
+La API quedará disponible en:
 
+```
+http://localhost:8000
+```
 
 Documentación Swagger:
 
+```
 http://localhost:8000/docs
+```
+
 ---
 
-## Endpoints disponibles
+## 🔌 Endpoint disponible
 
-### POST /v2/analyze
+### POST /v3/analyze
 
-- Analiza el sentimiento de un texto en español.
+Analiza el sentimiento de un texto en español.
 
 #### Request (JSON)
+
 ```json
 {
   "text": "El servicio fue rápido y muy profesional"
 }
+```
 
-### Response exitosa
+#### Response exitosa
 
+```json
 {
-  "texto": "El servicio fue rápido y muy profesional",
   "sentimiento": "positivo",
-  "probabilidad": 0.67,
-  "modelo": "sentiment-es-v2",
-  "trace_id": "94ac7cd1"
+  "confianza": 0.87
 }
+```
 
+* **sentimiento**: positivo | negativo | neutro
+* **confianza**: valor entre 0 y 1 que indica la seguridad de la predicción
 
-###Manejo de errores
+---
 
-- La API responde siempre con HTTP 200.
-- Los errores se reportan dentro del cuerpo de la respuesta para facilitar la trazabilidad en los sistemas consumidores.
+## 🧪 Ejemplos de uso
 
-    Ejemplo de error
+* **Positivo**:
+  “El servicio fue excelente, rápido y muy amable.”
 
-{
-  "error_code": "MODEL_FAILURE",
-  "message": "Error interno del modelo",
-  "trace_id": "a1b2c3"
-}
+* **Negativo**:
+  “El lugar estaba sucio y la atención fue horrible.”
 
-    Guía de integración para Back-end (Java / Spring Boot)
+* **Ambiguo / Neutro**:
+  “Fue sucio y feo, pero tal vez regrese más adelante.”
 
-Esta API está pensada para ser consumida como un microservicio externo.
+---
 
-###Consideraciones técnicas
+## 🔗 Guía de integración para Back-end (Java / Spring Boot)
 
-Endpoint: /v2/analyze
+Esta API está pensada para ser consumida como un **microservicio externo**.
 
-Método: POST
+### Consideraciones técnicas
 
-Content-Type: application/json
-
-Autenticación: No requerida
-
-Respuesta: JSON
-
-### El Back-end no necesita cargar ni ejecutar el modelo de Machine Learning.
+* Endpoint: `/v3/analyze`
+* Método: `POST`
+* Content-Type: `application/json`
+* Autenticación: No requerida
+* Respuesta: JSON
 
 ### Flujo recomendado en Java
 
-1.Enviar una petición HTTP POST con el texto a analizar
+1. Enviar una petición HTTP POST con el texto a analizar
+2. Parsear la respuesta JSON
+3. Utilizar los campos `sentimiento` y `confianza` dentro de la lógica de negocio
 
-2.Parsear la respuesta JSON
+> El Back-end **no necesita cargar ni ejecutar el modelo de Machine Learning**.
 
-3.Utilizar los campos sentimiento y probabilidad dentro de la lógica de negocio
+---
 
-###Pruebas
+## 🎯 Alcance del proyecto (Hackathon)
 
-El proyecto incluye:
+* MVP funcional de análisis de sentimiento
+* Integración clara entre **Data Science y Back-end**
+* Enfoque en claridad, simplicidad y valor de negocio
+* Preparado para demostración en entorno controlado
 
--Pruebas unitarias
+---
 
--Simulación de timeouts del modelo
+## 👤 Autoría y responsabilidad técnica
 
--Simulación de fallos controlados del modelo
+Este proyecto fue diseñado e implementado por:
 
--Pruebas de regresión entre las versiones v1 y v2
-    pytest --cov=app
+**Deiwid Correa**
 
+Responsabilidades cubiertas:
 
+* Limpieza y preparación del dataset
+* Entrenamiento y serialización del modelo
+* Diseño e implementación de la API
+* Versionado de endpoints
+* Validación de entradas y estructura de respuestas
+* Dockerización y despliegue con Docker Compose
 
+---
 
-###Autoría y responsabilidad técnica
+## 📄 Licencia
 
-Este proyecto fue diseñado, implementado y desplegado por:
+Proyecto desarrollado con fines **educativos y demostrativos** (Hackathon).
 
-Deiwid Correa
-
-Responsabilidades cubiertas
-
--Limpieza y preparación del dataset
-
--Entrenamiento y serialización del modelo
-
--Diseño e implementación de la API
-
--Versionado de endpoints (v1 y v2)
-
--Manejo de errores, timeouts y logging
-
--Implementación de pruebas automatizadas y de regresión
-
--Dockerización y despliegue con Docker Compose
-
-###Licencia
-
--Proyecto desarrollado con fines educativos y demostrativos.

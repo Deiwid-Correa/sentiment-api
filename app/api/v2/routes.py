@@ -1,23 +1,34 @@
-from fastapi import APIRouter, Depends
-from app.schemas import TextoEntrada, ErrorResponse
-from app.services.sentiment_service_v2 import analizar_v2
-from typing import Union
+from fastapi import APIRouter, Request
+from app.core.security.rate_limit import limiter
+from app.api.v2.schemas import AnalyzeRequest, AnalyzeResponse
 
-router = APIRouter(
-    prefix="/v2",
-    tags=["v2"]
-)
+router = APIRouter(prefix="/v2", tags=["v2"])
 
-@router.get("/status")
-def status_v2():
-    return {
-        "version": "v2",
-        "status": "En desarrollo"
-    }
 
 @router.post(
     "/analyze",
-    response_model=Union[dict, ErrorResponse]
+    response_model=AnalyzeResponse
 )
-def analyze_v2(payload: TextoEntrada):
-    return analizar_v2(payload.text)
+@limiter.limit("10/minute")
+async def analyze_text(
+    request: Request,          # 🔑 OBLIGATORIO PARA SLOWAPI
+    payload: AnalyzeRequest
+):
+    """
+    Analiza el sentimiento de un texto (v2).
+    Rate limited: 10 requests por minuto por IP.
+    """
+
+    text = payload.text.lower()
+
+    if "bueno" in text or "excelente" in text:
+        sentimiento = "positivo"
+    elif "malo" in text or "horrible" in text:
+        sentimiento = "negativo"
+    else:
+        sentimiento = "neutro"
+
+    return AnalyzeResponse(
+        texto=payload.text,
+        sentimiento=sentimiento
+    )

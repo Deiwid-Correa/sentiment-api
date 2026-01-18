@@ -4,7 +4,10 @@ from app.config import API_KEY
 
 
 def validar_api_key(
-    x_api_key: Optional[str] = Header(default=None, alias="x-api-key")
+    x_api_key: Optional[str] = Header(
+        default=None,
+        alias="x-api-key"   # 👈 ESTO es lo que faltaba
+    )
 ):
     if x_api_key is None:
         raise HTTPException(
